@@ -3,7 +3,7 @@ import numpy as np
 
 # Load images
 reference_path = "stop-sign-plain.jpg"   # Reference image
-test_path = "stop-sign-far.jpg"        # Test Image
+test_path = "stop-sign-close.png"        # Test Image
 
 ref_img = cv2.imread(reference_path)
 test_img = cv2.imread(test_path)
@@ -49,7 +49,7 @@ if H is not None:
 
     # Draw polygon around detected stop sign
     output_img = test_img.copy()
-    cv2.polylines(output_img, [np.int32(projected)], True, (0,255,255), 4)
+    cv2.polylines(output_img, [np.int32(projected)], True, (191,64,191), 3)
 
     print("Stop sign detected!")
 
