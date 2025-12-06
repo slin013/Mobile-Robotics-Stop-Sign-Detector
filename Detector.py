@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 # Load images
-reference_path = "stop-sign-plain.jpg"   # Reference image
-test_path = "stop-sign-close.png"        # Test Image
+reference_path = "stop3.jpg"   # Reference image
+test_path = "stop-sign-angled.webp"        # Test Image
 
 ref_img = cv2.imread(reference_path)
 test_img = cv2.imread(test_path)
@@ -37,7 +37,14 @@ test_pts = np.float32([kp2[m.trainIdx].pt for m in good_matches]).reshape(-1, 1,
 # Compute homography using RANSAC
 H, mask = cv2.findHomography(ref_pts, test_pts, cv2.RANSAC, 5.0)
 
+inliers = mask.ravel().tolist().count(1)
+if inliers < 9:
+    H = None
+print(f"Inliers (good matches): {inliers}")
+
 if H is not None:
+
+
     # Outline stop sign using transformed corners
     h, w = ref_gray.shape
 
@@ -51,11 +58,14 @@ if H is not None:
     output_img = test_img.copy()
     cv2.polylines(output_img, [np.int32(projected)], True, (191,64,191), 3)
 
+    cv2.putText(output_img, "DETECTED", (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
+
     print("Stop sign detected!")
 
 else:
     output_img = test_img
     print("Homography failed. Stop sign may not be detected.")
+    cv2.putText(output_img, "NOT DETECTED", (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
 
 # Display result
 cv2.imshow("Reference Image", ref_img)
