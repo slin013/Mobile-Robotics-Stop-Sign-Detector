@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 # Load images
-reference_path = "stop3.jpg"   # Reference image
-test_path = "stop-sign-angled.webp"        # Test Image
+reference_path = "stop-sign-plain.jpg"   # Reference image
+test_path = "stop3.jpg"        # Test Image
 
 ref_img = cv2.imread(reference_path)
 test_img = cv2.imread(test_path)
