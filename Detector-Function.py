@@ -17,8 +17,15 @@ os.makedirs(output_root)
 # =========================================================
 # LOAD REFERENCE IMAGE + ORB FEATURES
 # =========================================================
-reference_path = "stop-sign-plain.jpg"
+reference_path = "reference.jpg"
 ref_img = cv2.imread(reference_path)
+max_dim = 500
+h, w = ref_img.shape[:2]
+scale = max_dim / max(h, w)
+if scale < 1:
+    ref_img = cv2.resize(ref_img, (int(w * scale), int(h * scale)))
+ref_img = cv2.GaussianBlur(ref_img, (3,3), 0)
+
 
 if ref_img is None:
     raise ValueError("Error: cannot load reference image. Check the file path!")
@@ -33,6 +40,14 @@ kp1, des1 = orb.detectAndCompute(ref_gray, None)
 # STOP SIGN DETECTION FUNCTION
 # =========================================================
 def detect_stop_sign(test_img):
+    max_dim = 500
+    h, w = test_img.shape[:2]
+    scale = max_dim / max(h, w)
+    if scale < 1:
+        test_img = cv2.resize(test_img, (int(w * scale), int(h * scale)))
+
+    test_img = cv2.GaussianBlur(test_img, (3, 3), 0)
+
     test_gray = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
 
     # Extract ORB features
@@ -41,6 +56,7 @@ def detect_stop_sign(test_img):
         output = test_img.copy()
         cv2.putText(output, "NOT DETECTED", (30, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+
         return output, False, 0
 
     # Match descriptors
@@ -63,6 +79,8 @@ def detect_stop_sign(test_img):
         output = test_img.copy()
         cv2.putText(output, "NOT DETECTED", (30, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,0,255), 3)
+        cv2.putText(output, "INLIERS:" + str(inliers), (30, 90),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
         return output, False, inliers
 
     # Draw bounding box
@@ -74,6 +92,8 @@ def detect_stop_sign(test_img):
     cv2.polylines(output, [np.int32(projected)], True, (191,64,191), 3)
     cv2.putText(output, "DETECTED", (30, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 3)
+    cv2.putText(output, "INLIERS:" + str(inliers), (30, 90),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
 
     return output, True, inliers
 
@@ -87,7 +107,7 @@ folders = {
     "stop-angle": "stop-angle",
     "stop-far":   "stop-far",
     "no-stop":    "no-stop",
-    "other-signs": "other-signs"
+    "other-sign": "other-sign"
 }
 
 results = {}
@@ -103,7 +123,7 @@ for folder_name, folder_path in folders.items():
     os.makedirs(save_folder, exist_ok=True)
 
     for filename in os.listdir(folder_path):
-        if filename.lower().endswith((".jpg", ".jpeg", ".png",".webp")):
+        if filename.lower().endswith((".jpg", ".jpeg", ".png",".webp", ".heic")):
 
             total_images += 1
             img_path = os.path.join(folder_path, filename)
@@ -122,7 +142,7 @@ for folder_name, folder_path in folders.items():
             cv2.imwrite(save_path, output_img)
 
             # --- ACCURACY CALC ---
-            if folder_name in ["no-stop", "other-signs"]:
+            if folder_name in ["no-stop", "other-sign"]:
                 # Should NOT detect
                 if not detected:
                     correct += 1
