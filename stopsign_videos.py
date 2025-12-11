@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+#video analyzer
 class StopSignDetector:
   
     def __init__(self, reference_image_path, min_matches=10, ransac_threshold=5.0):
@@ -212,3 +212,4 @@ if __name__ == "__main__":
         )
     except Exception as e:
         print(f"Error: {e}")
+
